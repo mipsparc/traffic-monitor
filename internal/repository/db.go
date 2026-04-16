@@ -3,8 +3,10 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"time"
 	"traffic-monitor/internal/config"
+	"traffic-monitor/internal/model"
 
 	"github.com/go-sql-driver/mysql"
 	_ "github.com/go-sql-driver/mysql"
@@ -35,6 +37,28 @@ func NewDB(conf *config.Config) error {
 		// ignore error on close
 		_ = DB.Close()
 		return fmt.Errorf("failed to ping database: %v", err)
+	}
+
+	return nil
+}
+
+func InsertReport(camera_id uint64, report model.Report) error {
+	res, err := DB.Exec(`
+		INSERT INTO report
+		(camera_id, uuid, time, video_id, latitude, longitude, severity, report_type, report_text)
+		VALUES
+		(?, ?, ?, ?, ?, ?, ?, ?, ?)
+		`, camera_id, report.UUID, report.Time, report.VideoID, report.Latitude, report.Longitude, report.Severity, report.ReportType, report.Text,
+	)
+	if err != nil {
+		return err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		slog.Error("no rows affected after inserting report")
 	}
 
 	return nil
