@@ -1,0 +1,59 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: traffic_monitor_server
+    ports:
+      - "8443:8443"
+    restart: unless-stopped
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_USER=app_user
+      - DB_PASSWORD=super_strong_password
+      - DB_NAME=traffic_db
+      - VALKEY_HOST=cache
+      - VALKEY_PORT=6379
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+
+  db:
+    image: mysql:8.4
+    container_name: traffic_monitor_db
+    environment:
+      MYSQL_ROOT_PASSWORD: super_strong_root_password
+      MYSQL_DATABASE: traffic_db
+      MYSQL_USER: app_user
+      MYSQL_PASSWORD: super_strong_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  cache:
+    image: valkey/valkey:9.0
+    container_name: traffic_monitor_cache
+    ports:
+      - "6379:6379"
+    volumes:
+      - valkey_data:/data
+    healthcheck:
+      test: [ "CMD", "valkey-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+  valkey_data:

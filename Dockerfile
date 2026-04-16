@@ -1,0 +1,22 @@
+FROM golang:1.25-alpine AS builder
+
+WORKDIR /app
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/bin/server ./cmd/api
+
+FROM debian:bookworm
+
+WORKDIR /app
+
+COPY --from=builder /app/bin/server .
+
+COPY internal/config/certs/ /certs/
+
+EXPOSE 8443
+
+CMD ["./server"]

@@ -7,5 +7,6 @@ import (
 )
 
 func defineRoutes(e *echo.Echo) {
-	e.POST("/api/v1/report", handler.ReportHandler)
+	v1 := e.Group("/api/v1")
+	v1.POST("/api/v1/report", handler.ReportHandler)
 }
