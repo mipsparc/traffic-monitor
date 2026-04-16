@@ -1,12 +1,16 @@
 package handler
 
 import (
+	"traffic-monitor/internal/model"
+
 	"github.com/labstack/echo/v5"
 )
 
 func ReportHandler(c *echo.Context) error {
-	// JSONのReportsを受け取ってunmarshalする
-	//reports := &model.Reports{}
+	var reports model.Reports
+	if err := c.Bind(&reports); err != nil {
+		return c.JSON(400, "Invalid request")
+	}
 
 	// validate first
 
@@ -18,5 +22,5 @@ func ReportHandler(c *echo.Context) error {
 
 	// add to Valkey to send notification
 
-	return c.JSON(200, "OK")
+	return c.JSON(200, reports)
 }

@@ -15,6 +15,7 @@ var (
 	TooLowSpeed    ReportType = "too_low_speed"
 	TooFastSpeed   ReportType = "too_fast_speed"
 	Debris         ReportType = "debris"
+	FacilityDamage ReportType = "facility_damage"
 	Other          ReportType = "other"
 	Unknown        ReportType = "unknown"
 )
@@ -45,6 +46,8 @@ func (rt ReportType) String() string {
 		return "極端な速度超過"
 	case Debris:
 		return "障害物"
+	case FacilityDamage:
+		return "施設破損"
 	case Other:
 		return "その他"
 	case Unknown:

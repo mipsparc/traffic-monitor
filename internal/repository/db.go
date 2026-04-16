@@ -37,7 +37,5 @@ func NewDB(conf *config.Config) error {
 		return fmt.Errorf("failed to ping database: %v", err)
 	}
 
-	fmt.Println("Connected to database")
-
 	return nil
 }

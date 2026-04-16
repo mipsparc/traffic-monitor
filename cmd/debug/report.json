@@ -1,0 +1,24 @@
+{
+  "camera_id": 1234567,
+  "report": [
+    {
+      "uuid": "deadbeeffoobar1",
+      "time": "2026-04-16T01:23:45+09:00",
+      "video_id": "foobarfoofoo1",
+      "lat": 36.191092,
+      "long": 140.998605,
+      "report_type": "crash",
+      "describe": "1 car crashed."
+    },
+    {
+      "uuid": "deadbeeffoobar2",
+      "time": "2026-04-16T01:23:50+09:00",
+      "video_id": "foobarfoofoo1",
+      "lat": 36.191092,
+      "long": 140.998605,
+      "severity": 30,
+      "report_type": "facility_damage",
+      "describe": "sign pole has damage."
+    }
+  ]
+}
