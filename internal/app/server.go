@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"traffic-monitor/internal/config"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v5"
 	"github.com/labstack/echo/v5/middleware"
 )
@@ -17,6 +18,7 @@ func Run(conf *config.Config) error {
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestLogger())
 
+	e.Validator = &CustomValidator{validator: validator.New(validator.WithRequiredStructEnabled())}
 	defineRoutes(e)
 
 	// Use mTLS to ensure clients are valid

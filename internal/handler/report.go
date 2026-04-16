@@ -12,9 +12,15 @@ func ReportHandler(c *echo.Context) error {
 		return c.JSON(400, "Invalid request")
 	}
 
-	// validate first
+	// ensure 1 or more report exist
+	if len(reports.Report) == 0 {
+		return c.JSON(400, "Invalid request")
+	}
 
-	// validate on each report
+	// ensure all items exist
+	if err := c.Validate(reports); err != nil {
+		return c.JSON(400, "Invalid request")
+	}
 
 	// insert into MySQL
 

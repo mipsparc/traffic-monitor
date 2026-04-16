@@ -1,8 +1,10 @@
 package model
 
+import "log/slog"
+
 type ReportType string
 
-var (
+const (
 	Crash          ReportType = "crash"
 	Collision      ReportType = "collision"
 	StopInLiveLane ReportType = "stop_in_live_lane"
@@ -53,6 +55,7 @@ func (rt ReportType) String() string {
 	case Unknown:
 		return "不明"
 	default:
+		slog.Error("登録されていないレポートタイプを受領しました")
 		return "不明なレポートタイプ"
 	}
 }
