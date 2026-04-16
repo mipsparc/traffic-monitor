@@ -9,7 +9,7 @@
       "long": 140.998605,
       "severity": 90,
       "report_type": "crash",
-      "describe": "1 car crashed."
+      "text": "1 car crashed."
     },
     {
       "uuid": "deadbeeffoobar2",
@@ -19,7 +19,7 @@
       "long": 140.998605,
       "severity": 30,
       "report_type": "facility_damage",
-      "describe": "sign pole is damaged."
+      "text": "sign pole is damaged."
     }
   ]
 }

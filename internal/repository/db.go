@@ -10,7 +10,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-// There are better way to handle this. This is for demo purpose.
+// DB There are some better ways to handle. This is for a demo purpose.
 var DB *sql.DB
 
 func NewDB(conf *config.Config) error {

@@ -15,5 +15,5 @@ type Report struct {
 	Longitude  float64    `json:"long" validate:"required"`
 	Severity   uint8      `json:"severity" validate:"required"`
 	ReportType ReportType `json:"report_type" validate:"required"`
-	Describe   string     `json:"describe" validate:"required"`
+	Text       string     `json:"text" validate:"required"`
 }
