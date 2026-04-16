@@ -7,6 +7,7 @@
       "video_id": "foobarfoofoo1",
       "lat": 36.191092,
       "long": 140.998605,
+      "severity": 90,
       "report_type": "crash",
       "describe": "1 car crashed."
     },
