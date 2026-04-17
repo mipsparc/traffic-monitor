@@ -25,7 +25,7 @@ func ReportHandler(c *echo.Context) error {
 		return c.JSON(http.StatusBadRequest, "Invalid request")
 	}
 
-	// if the report with the same UUID sent again, ignored by database and logged
+	// if the report with the same UUID sent again, ignored by database and logged as error
 	errorOccurred := false
 	for _, report := range reports.Report {
 		err := repository.InsertReport(reports.CameraID, report)
