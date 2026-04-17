@@ -1,25 +1,35 @@
 {
-  "camera_id": 1234567,
+  "camera_id": 12345678,
   "report": [
     {
-      "uuid": "deadbeeffoobar1",
-      "time": "2026-04-16T01:23:45+09:00",
+      "uuid": "deadbeeffoobar0",
+      "time": "2026-04-16T01:25:00+09:00",
       "video_id": "foobarfoofoo1",
       "lat": 36.191092,
       "long": 140.998605,
-      "severity": 90,
+      "severity": 80,
       "report_type": "crash",
-      "text": "1 car crashed."
+      "text": "1 car crashed to the side wall"
     },
     {
-      "uuid": "deadbeeffoobar2",
-      "time": "2026-04-16T01:23:50+09:00",
+      "uuid": "deadbeeffoobar1",
+      "time": "2026-04-16T01:25:30+09:00",
       "video_id": "foobarfoofoo1",
       "lat": 36.191092,
       "long": 140.998605,
       "severity": 30,
-      "report_type": "facility_damage",
-      "text": "sign pole is damaged."
+      "report_type": "debris",
+      "text": "debris detected"
+    },
+    {
+      "uuid": "deadbeeffoobar2",
+      "time": "2026-04-16T01:26:20+09:00",
+      "video_id": "foobarfoofoo1",
+      "lat": 36.191092,
+      "long": 140.998605,
+      "severity": 90,
+      "report_type": "collision",
+      "text": "2 cars collided"
     }
   ]
 }

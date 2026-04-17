@@ -25,7 +25,7 @@ func ReportHandler(c *echo.Context) error {
 		return c.JSON(http.StatusBadRequest, "Invalid request")
 	}
 
-	// if the report with same UUID sent again, ignored by database
+	// if the report with the same UUID sent again, ignored by database and logged
 	errorOccurred := false
 	for _, report := range reports.Report {
 		err := repository.InsertReport(reports.CameraID, report)
@@ -38,7 +38,5 @@ func ReportHandler(c *echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, "Server error")
 	}
 
-	// add to Valkey to send notification
-
-	return c.JSON(http.StatusOK, reports)
+	return c.JSON(http.StatusOK, "OK")
 }
