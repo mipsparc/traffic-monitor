@@ -14,8 +14,8 @@ FROM debian:bookworm
 WORKDIR /app
 
 COPY --from=builder /app/bin/server .
-
 COPY internal/config/certs/ /certs/
+COPY internal/static /static
 
 EXPOSE 8443
 
