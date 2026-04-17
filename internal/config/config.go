@@ -13,8 +13,6 @@ type Config struct {
 	DBUser     string `envconfig:"DB_USER" required:"true"`
 	DBPassword string `envconfig:"DB_PASSWORD" required:"true"`
 	DBName     string `envconfig:"DB_NAME" required:"true"`
-	ValkeyHost string `envconfig:"VALKEY_HOST" required:"true"`
-	ValkeyPort string `envconfig:"VALKEY_PORT" required:"true"`
 	CACert     []byte
 	ServerCert []byte
 	ServerKey  []byte

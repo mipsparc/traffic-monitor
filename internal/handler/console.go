@@ -25,12 +25,14 @@ func ConsoleHandler(c *echo.Context) error {
 	// sort by severity or time
 	sort := c.QueryParam("sort")
 	if sort != "" {
-		if !slices.Contains([]string{"severity", "report_id"}, sort) {
+		if !slices.Contains([]string{"severity", "time"}, sort) {
 			return c.JSON(http.StatusBadRequest, "Invalid request")
 		}
+	} else {
+		sort = "time"
 	}
 
-	// asc or desc
+	// when sorted, asc or desc
 	asc := c.QueryParam("asc")
 	ascDesc := "DESC"
 	if asc == "true" {
@@ -40,6 +42,10 @@ func ConsoleHandler(c *echo.Context) error {
 	result, err := repository.SearchReport(filter, filterValue, sort, ascDesc)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, "Server error")
+	}
+
+	if len(*result) == 0 {
+		return c.JSON(http.StatusOK, "")
 	}
 
 	return c.JSON(http.StatusOK, result)

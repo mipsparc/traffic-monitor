@@ -15,7 +15,7 @@ WORKDIR /app
 
 COPY --from=builder /app/bin/server .
 COPY internal/config/certs/ /certs/
-COPY internal/static /static
+COPY static static
 
 EXPOSE 8443
 

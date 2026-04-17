@@ -13,12 +13,8 @@ services:
       - DB_USER=app_user
       - DB_PASSWORD=super_strong_password
       - DB_NAME=traffic_db
-      - VALKEY_HOST=cache
-      - VALKEY_PORT=6379
     depends_on:
       db:
-        condition: service_healthy
-      cache:
         condition: service_healthy
 
   db:
@@ -39,20 +35,3 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
-
-  cache:
-    image: valkey/valkey:9.0
-    container_name: traffic_monitor_cache
-    ports:
-      - "6379:6379"
-    volumes:
-      - valkey_data:/data
-    healthcheck:
-      test: [ "CMD", "valkey-cli", "ping" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
-
-volumes:
-  valkey_data:

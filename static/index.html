@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Monitor Console</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --background-color: #f5f7fa;
+            --text-color: #333;
+            --border-color: #e1e4e8;
+            --row-hover: #f1f3f5;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+            background: #fafafa;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        select, input, button {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #357abd;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: #fafafa;
+            font-weight: 600;
+            color: #555;
+            white-space: nowrap;
+        }
+
+        tr:hover {
+            background-color: var(--row-hover);
+        }
+
+        .severity-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .severity-low { background-color: #2ecc71; }
+        .severity-medium { background-color: #f1c40f; color: #333; }
+        .severity-high { background-color: #e67e22; }
+        .severity-critical { background-color: #e74c3c; }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 18px;
+            color: #666;
+        }
+
+        .error {
+            color: #e74c3c;
+            text-align: center;
+            padding: 20px;
+            background: #fdf0ed;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Traffic Monitor Console</h1>
+
+    <div class="controls">
+        <div class="control-group">
+            <label for="filter">Filter By:</label>
+            <select id="filter">
+                <option value="">None</option>
+                <option value="camera_id">Camera ID</option>
+                <option value="report_type">Report Type</option>
+            </select>
+            <input type="text" id="filterValue" placeholder="Filter value..." disabled>
+        </div>
+
+        <div class="control-group">
+            <label for="sort">Sort By:</label>
+            <select id="sort">
+                <option value="time">Time</option>
+                <option value="severity">Severity</option>
+            </select>
+            <select id="asc">
+                <option value="false">Descending</option>
+                <option value="true">Ascending</option>
+            </select>
+        </div>
+
+        <button onclick="fetchData()">Apply</button>
+        <button onclick="autoRefresh()" id="refreshBtn" style="background-color: #e74c3c; margin-left: auto;">Auto: ON</button>
+    </div>
+
+    <div id="errorMessage" class="error"></div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+            <tr>
+                <th>Time</th>
+                <th>Camera ID</th>
+                <th>Report Type</th>
+                <th>Severity</th>
+                <th>Description</th>
+                <th>Location (Lat, Long)</th>
+                <th>Video ID</th>
+            </tr>
+            </thead>
+            <tbody id="tableBody">
+            <!-- Data will be populated here -->
+            </tbody>
+        </table>
+        <div id="loadingIndicator" class="loading">Loading data...</div>
+    </div>
+</div>
+
+<script>
+    let refreshInterval;
+    let isAutoRefresh = true;
+    let maxReportId = 0; // Track the highest report ID seen
+
+    // Handle filter value input state
+    document.getElementById('filter').addEventListener('change', function() {
+        const valueInput = document.getElementById('filterValue');
+        valueInput.disabled = !this.value;
+        if (!this.value) valueInput.value = '';
+    });
+
+    function getSeverityClass(severity) {
+        if (severity < 30) return 'severity-low';
+        if (severity < 60) return 'severity-medium';
+        if (severity < 80) return 'severity-high';
+        return 'severity-critical';
+    }
+
+    async function fetchData() {
+        const filter = document.getElementById('filter').value;
+        const filterValue = document.getElementById('filterValue').value;
+        const sort = document.getElementById('sort').value;
+        const asc = document.getElementById('asc').value;
+
+        const url = new URL(window.location.origin + '/api/v1/console');
+        if (filter && filterValue) {
+            url.searchParams.append('filter', filter);
+            url.searchParams.append('filter_value', filterValue);
+        }
+        url.searchParams.append('sort', sort);
+        url.searchParams.append('asc', asc);
+
+        const tbody = document.getElementById('tableBody');
+        const loader = document.getElementById('loadingIndicator');
+        const errorMsg = document.getElementById('errorMessage');
+
+        tbody.innerHTML = '';
+        loader.style.display = 'block';
+        errorMsg.style.display = 'none';
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Failed to fetch data');
+
+            const data = await response.json();
+            loader.style.display = 'none';
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No reports found</td></tr>';
+                return;
+            }
+
+            // Sort data in frontend
+            data.sort((a, b) => {
+                let valA, valB;
+
+                if (sort === 'severity') {
+                    valA = a.Severity;
+                    valB = b.Severity;
+                } else {
+                    // Default to sorting by Time if 'report_id' or 'time' is selected
+                    valA = new Date(a.Time).getTime();
+                    valB = new Date(b.Time).getTime();
+                }
+
+                if (valA < valB) return asc === 'true' ? -1 : 1;
+                if (valA > valB) return asc === 'true' ? 1 : -1;
+                return 0;
+            });
+
+            // Update maxReportId based on the fetched data
+            let currentMaxId = 0;
+            data.forEach(item => {
+                if (item.ID > currentMaxId) {
+                    currentMaxId = item.ID;
+                }
+                const tr = document.createElement('tr');
+                const time = new Date(item.Time).toLocaleString();
+
+
+                tr.innerHTML = `
+                    <td>${time}</td>
+                    <td>${item.CameraID}</td>
+                    <td>${item.ReportType}</td>
+                    <td><span class="severity-badge ${getSeverityClass(item.Severity)}">${item.Severity}</span></td>
+                    <td>${item.Text || ''}</td>
+                    <td>${item.Latitude.toFixed(4)}, ${item.Longitude.toFixed(4)}</td>
+                    <td>${item.VideoID}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            maxReportId = currentMaxId; // Store the highest ID
+        } catch (error) {
+            loader.style.display = 'none';
+            errorMsg.textContent = 'Error loading data: ' + error.message;
+            errorMsg.style.display = 'block';
+        }
+    }
+
+    async function checkLatestAndFetch() {
+        try {
+            // First check the latest ID
+            const response = await fetch('/api/v1/console/latest');
+            if (!response.ok) return; // Silent fail on check, keep trying next tick
+
+            const latestId = await response.json();
+
+            // If the database has a newer report, fetch the full list
+            if (latestId > maxReportId) {
+                console.log(`New data found! Latest ID: ${latestId}, Current Max: ${maxReportId}. Fetching...`);
+                fetchData();
+            }
+        } catch (error) {
+            console.error("Error checking latest ID:", error);
+        }
+    }
+
+    function autoRefresh() {
+        const btn = document.getElementById('refreshBtn');
+        isAutoRefresh = !isAutoRefresh;
+
+        if (isAutoRefresh) {
+            btn.textContent = 'Auto: ON';
+            btn.style.backgroundColor = '#e74c3c';
+            fetchData(); // Fetch immediately on toggle
+            refreshInterval = setInterval(checkLatestAndFetch, 1000); // Check the latest every second
+        } else {
+            btn.textContent = 'Auto: OFF';
+            btn.style.backgroundColor = '#2ecc71';
+            clearInterval(refreshInterval);
+        }
+    }
+
+    // Initial fetch
+    fetchData();
+    // Initial set interval
+    refreshInterval = setInterval(checkLatestAndFetch, 1000);
+</script>
+
+</body>
+</html>

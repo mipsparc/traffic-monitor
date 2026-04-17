@@ -10,10 +10,9 @@ func defineRoutes(e *echo.Echo) {
 	v1 := e.Group("/api/v1")
 	v1.POST("/report", handler.ReportHandler)
 	v1.GET("/console", handler.ConsoleHandler)
-
-	// Console
-	e.GET("/", handler.IndexHandler)
+	// to reduce the number of calls to get full data, just return the latest report_id
+	v1.GET("/console/latest", handler.LatestHandler)
 
 	// Static content for the console
-	e.Static("/static", "/static")
+	e.File("/", "static/index.html")
 }

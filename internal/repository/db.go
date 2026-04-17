@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -92,10 +93,10 @@ func SearchReport(filter string, filterValue string, sort string, ascDesc string
 	}
 
 	var orderBy string
-	if sort != "" {
-		orderBy = fmt.Sprintf(" ORDER BY %s %s ", sort, ascDesc)
+	if sort == "time" {
+		orderBy = fmt.Sprintf(" ORDER BY time %s ", ascDesc)
 	} else {
-		orderBy = " ORDER BY report_id DESC "
+		orderBy = fmt.Sprintf(" ORDER BY %s %s, time DESC ", sort, ascDesc)
 	}
 
 	rows, err := DB.Query(`SELECT * FROM report`+
@@ -121,4 +122,17 @@ func SearchReport(filter string, filterValue string, sort string, ascDesc string
 	}
 
 	return &reports, nil
+}
+
+func LatestReportID() (uint64, error) {
+	var id uint64
+	err := DB.QueryRow("SELECT report_id FROM report ORDER BY report_id DESC LIMIT 1").Scan(&id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, nil
+	}
+	if err != nil {
+		slog.Error("failed to query latest report id: ", err)
+		return 0, err
+	}
+	return id, nil
 }
