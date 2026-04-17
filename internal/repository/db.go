@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 	"traffic-monitor/internal/config"
 	"traffic-monitor/internal/model"
@@ -42,13 +43,14 @@ func NewDB(conf *config.Config) error {
 	return nil
 }
 
-func InsertReport(camera_id uint64, report model.Report) error {
-	res, err := DB.Exec(`
+func InsertReport(cameraID uint64, report model.Report) error {
+	res, err := DB.Exec(strings.ReplaceAll(`
 		INSERT INTO report
 		(camera_id, uuid, time, video_id, latitude, longitude, severity, report_type, report_text)
 		VALUES
 		(?, ?, ?, ?, ?, ?, ?, ?, ?)
-		`, camera_id, report.UUID, report.Time, report.VideoID, report.Latitude, report.Longitude, report.Severity, report.ReportType, report.Text,
+		ON DUPLICATE KEY UPDATE ""uuid"" = ""uuid""
+		`, `""`, "`"), cameraID, report.UUID, report.Time, report.VideoID, report.Latitude, report.Longitude, report.Severity, report.ReportType, report.Text,
 	)
 	if err != nil {
 		return err

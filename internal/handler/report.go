@@ -2,6 +2,7 @@ package handler
 
 import (
 	"log/slog"
+	"net/http"
 	"traffic-monitor/internal/model"
 	"traffic-monitor/internal/repository"
 
@@ -11,19 +12,20 @@ import (
 func ReportHandler(c *echo.Context) error {
 	var reports model.Reports
 	if err := c.Bind(&reports); err != nil {
-		return c.JSON(400, "Invalid request")
+		return c.JSON(http.StatusBadRequest, "Invalid request")
 	}
 
 	// ensure 1 or more report exist
 	if len(reports.Report) == 0 {
-		return c.JSON(400, "Invalid request")
+		return c.JSON(http.StatusBadRequest, "Invalid request")
 	}
 
 	// ensure all items exist
 	if err := c.Validate(reports); err != nil {
-		return c.JSON(400, "Invalid request")
+		return c.JSON(http.StatusBadRequest, "Invalid request")
 	}
 
+	// if the report with same UUID sent again, ignored by database
 	errorOccurred := false
 	for _, report := range reports.Report {
 		err := repository.InsertReport(reports.CameraID, report)
@@ -33,10 +35,10 @@ func ReportHandler(c *echo.Context) error {
 		}
 	}
 	if errorOccurred {
-		return c.JSON(500, "Server error")
+		return c.JSON(http.StatusInternalServerError, "Server error")
 	}
 
 	// add to Valkey to send notification
 
-	return c.JSON(200, reports)
+	return c.JSON(http.StatusOK, reports)
 }
