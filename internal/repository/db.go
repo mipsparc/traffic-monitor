@@ -23,6 +23,7 @@ func NewDB(conf *config.Config) error {
 	cfg.Net = "tcp"
 	cfg.Addr = fmt.Sprintf("%s:%s", conf.DBHost, conf.DBPort)
 	cfg.DBName = conf.DBName
+	cfg.ParseTime = true
 
 	conn, err := mysql.NewConnector(cfg)
 	if err != nil {
@@ -42,6 +43,8 @@ func NewDB(conf *config.Config) error {
 
 	return nil
 }
+
+// Using ORM is also a good idea.
 
 func InsertReport(cameraID uint64, report model.Report) error {
 	res, err := DB.Exec(strings.ReplaceAll(`
@@ -64,4 +67,58 @@ func InsertReport(cameraID uint64, report model.Report) error {
 	}
 
 	return nil
+}
+
+type SearchResult struct {
+	ID         uint64     `db:"report_id"`
+	CameraID   int        `db:"camera_id"`
+	UUID       string     `db:"uuid"`
+	Time       *time.Time `db:"time"`
+	VideoID    string     `db:"video_id"`
+	Latitude   float64    `db:"latitude"`
+	Longitude  float64    `db:"longitude"`
+	Severity   uint8      `db:"severity"`
+	ReportType string     `db:"report_type"`
+	Text       string     `db:"report_text"`
+}
+
+func SearchReport(filter string, filterValue string, sort string, ascDesc string) (*[]SearchResult, error) {
+	var where string
+	if filter != "" {
+		where = fmt.Sprintf(" WHERE %s = ? ", filter)
+	} else {
+		where = " WHERE 1 = ? "
+		filterValue = "1"
+	}
+
+	var orderBy string
+	if sort != "" {
+		orderBy = fmt.Sprintf(" ORDER BY %s %s ", sort, ascDesc)
+	} else {
+		orderBy = " ORDER BY report_id DESC "
+	}
+
+	rows, err := DB.Query(`SELECT * FROM report`+
+		where+
+		orderBy+
+		`LIMIT 2000`, filterValue)
+	if err != nil {
+		slog.Error("failed to query report: ", err)
+		return nil, fmt.Errorf("failed to query report: %v", err)
+	}
+	defer rows.Close()
+
+	var reports []SearchResult
+
+	for rows.Next() {
+		var report SearchResult
+		err = rows.Scan(&report.ID, &report.CameraID, &report.UUID, &report.Time, &report.VideoID, &report.Latitude, &report.Longitude, &report.Severity, &report.ReportType, &report.Text)
+		if err != nil {
+			slog.Error("failed to scan report: ", err)
+			return nil, err
+		}
+		reports = append(reports, report)
+	}
+
+	return &reports, nil
 }
