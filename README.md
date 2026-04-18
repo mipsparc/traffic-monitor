@@ -61,4 +61,7 @@ Beware, **never forget to remove the CA certificate** from your browser.
 It makes the browser insecure.
 
 ## Trade-offs
-- 
+- There is no test code.
+- No ORM used.
+
+
