@@ -1,5 +1,7 @@
 # traffic-monitor
 
+<img height="500" alt="Screenshot" src="https://github.com/user-attachments/assets/ad75d455-bf0c-45c0-b075-fb520226a497" />
+
 ## IMPORTANT
 This is a **demo project**.
 
