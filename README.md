@@ -65,6 +65,7 @@ It makes the browser insecure.
 - No ORM used.
 
 ## Structures
+```
 ├── AI_PROMPT.md
 ├── Dockerfile
 ├── README.md
@@ -105,3 +106,4 @@ It makes the browser insecure.
 ├── static
 │         └── index.html
 └── test
+```
