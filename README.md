@@ -64,4 +64,44 @@ It makes the browser insecure.
 - There is no test code.
 - No ORM used.
 
-
+## Structures
+├── AI_PROMPT.md
+├── Dockerfile
+├── README.md
+├── cmd
+│         ├── api
+│         │         └── main.go
+│         └── debug
+│             ├── client-test.crt
+│             ├── client-test.key
+│             ├── client-test.p12
+│             ├── generate.py
+│             └── rootCA.crt
+├── docker-compose.yml
+├── go.mod
+├── go.sum
+├── initdb.d
+│         └── schema.sql
+├── internal
+│         ├── app
+│         │         ├── routes.go
+│         │         ├── server.go
+│         │         └── validate.go
+│         ├── config
+│         │         ├── certs
+│         │         │         ├── rootCA.crt
+│         │         │         ├── server.crt
+│         │         │         └── server.key
+│         │         └── config.go
+│         ├── handler
+│         │         ├── console.go
+│         │         ├── latest.go
+│         │         └── report.go
+│         ├── model
+│         │         ├── report.go
+│         │         └── report_type.go
+│         └── repository
+│             └── db.go
+├── static
+│         └── index.html
+└── test

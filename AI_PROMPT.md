@@ -1,0 +1,11 @@
+- Tell me the best directory structure for Echo Framework projects.Where to put the `main.go` best?
+- In terms of highway traffic video analysis, what kind of incident or abnormal behavior would you imagine?
+- Tell me how this project must be changed to docker-compose runnable structure
+- I want to add latest MySQL and ValKey to my project. Is there a better way to handle database connection?
+- in `ReportHandler` , I want to ensure all items are correctly set but current code pass insufficient request. How can I fix?
+- MySQL returns error. How can I fix it? Scan error on column index 3, name \"time\": unsupported Scan, storing driver.Value type []uint8 into type *time.Time"
+- Please implement a frontend of `/api/v1/console` . It is a console for monitoring events. Pretty HTML / CSS / JS is required. It should be placed at `/` . Static file server is ready.
+- Great. Please implement a check feature using `/api/v1/console/latest` to reduce database load. When the report_id is larger than current maximum report_id, just call `/api/v1/console` .
+- I placed a route `/` to provide index page, but it returns 404. Is there any problem?
+- You did a great job on building frontend. There is one problem, returned JSON is not perfectly sorted, so you also have to sort it in frontend. Please fix it.
+- I want to make `refreshBtn` apart from the rest of the buttons and so on
