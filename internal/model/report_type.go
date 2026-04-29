@@ -1,7 +1,5 @@
 package model
 
-import "log/slog"
-
 type ReportType string
 
 const (
@@ -19,43 +17,20 @@ const (
 	Debris         ReportType = "debris"
 	FacilityDamage ReportType = "facility_damage"
 	Other          ReportType = "other"
-	Unknown        ReportType = "unknown"
 )
 
-func (rt ReportType) String() string {
-	switch rt {
-	case Crash:
-		return "単独事故"
-	case Collision:
-		return "衝突事故"
-	case StopInLiveLane:
-		return "本線停車"
-	case StopInShoulder:
-		return "路肩停車"
-	case WrongWay:
-		return "逆走"
-	case Pedestrian:
-		return "歩行者侵入"
-	case Animal:
-		return "動物侵入"
-	case Smoke:
-		return "煙"
-	case Fire:
-		return "火災"
-	case TooLowSpeed:
-		return "異常に低速"
-	case TooFastSpeed:
-		return "極端な速度超過"
-	case Debris:
-		return "障害物"
-	case FacilityDamage:
-		return "施設破損"
-	case Other:
-		return "その他"
-	case Unknown:
-		return "不明"
-	default:
-		slog.Error("登録されていないレポートタイプを受領しました")
-		return "不明なレポートタイプ"
+var reportTypes = []ReportType{
+	Crash, Collision, StopInLiveLane, StopInShoulder, WrongWay,
+	Pedestrian, Animal, Smoke, Fire, TooLowSpeed, TooFastSpeed,
+	Debris, FacilityDamage, Other,
+}
+
+// Validate returns true if the report type is valid
+func (rt ReportType) Validate() bool {
+	for _, t := range reportTypes {
+		if rt == t {
+			return true
+		}
 	}
+	return false
 }

@@ -5,60 +5,66 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"strings"
 	"time"
 	"traffic-monitor/internal/config"
 	"traffic-monitor/internal/model"
 
-	"github.com/go-sql-driver/mysql"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
 )
 
 // DB There are some better ways to handle. This is for a demo purpose.
-var DB *sql.DB
+var DB *sqlx.DB
 
 func NewDB(conf *config.Config) error {
-	cfg := mysql.NewConfig()
-	cfg.User = conf.DBUser
-	cfg.Passwd = conf.DBPassword
-	cfg.Net = "tcp"
-	cfg.Addr = fmt.Sprintf("%s:%s", conf.DBHost, conf.DBPort)
-	cfg.DBName = conf.DBName
-	cfg.ParseTime = true
-
-	conn, err := mysql.NewConnector(cfg)
+	var err error
+	DB, err = sqlx.Connect("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
+		conf.DBUser, conf.DBPassword, conf.DBHost, conf.DBPort, conf.DBName),
+	)
 	if err != nil {
-		return fmt.Errorf("error connecting to database: %v", err)
-	}
-
-	DB = sql.OpenDB(conn)
-	DB.SetMaxOpenConns(30)
-	DB.SetMaxIdleConns(30)
-	DB.SetConnMaxLifetime(5 * time.Minute)
-
-	if err := DB.Ping(); err != nil {
-		// ignore error on close
-		_ = DB.Close()
-		return fmt.Errorf("failed to ping database: %v", err)
+		return fmt.Errorf("failed to connect to database: %v", err)
 	}
 
 	return nil
 }
 
-// Using ORM is also a good idea.
+// ReportInsertEntity DTO for inserting a report
+type ReportInsertEntity struct {
+	CameraID   uint64    `db:"camera_id"`
+	UUID       string    `db:"uuid"`
+	Time       time.Time `db:"time"`
+	VideoID    string    `db:"video_id"`
+	Latitude   float64   `db:"latitude"`
+	Longitude  float64   `db:"longitude"`
+	Severity   uint8     `db:"severity"`
+	ReportType string    `db:"report_type"`
+	Text       string    `db:"report_text"`
+}
 
 func InsertReport(cameraID uint64, report model.Report) error {
-	res, err := DB.Exec(strings.ReplaceAll(`
+	entity := ReportInsertEntity{
+		CameraID:   cameraID,
+		UUID:       report.UUID,
+		Time:       report.Time,
+		VideoID:    report.VideoID,
+		Latitude:   report.Latitude,
+		Longitude:  report.Longitude,
+		Severity:   report.Severity,
+		ReportType: string(report.ReportType),
+		Text:       report.Text,
+	}
+
+	res, err := DB.NamedExec(`
 		INSERT INTO report
 		(camera_id, uuid, time, video_id, latitude, longitude, severity, report_type, report_text)
 		VALUES
-		(?, ?, ?, ?, ?, ?, ?, ?, ?)
-		ON DUPLICATE KEY UPDATE ""uuid"" = ""uuid""
-		`, `""`, "`"), cameraID, report.UUID, report.Time, report.VideoID, report.Latitude, report.Longitude, report.Severity, report.ReportType, report.Text,
-	)
+		(:camera_id, :uuid, :time, :video_id, :latitude, :longitude, :severity, :report_type, :report_text)
+		ON DUPLICATE KEY UPDATE uuid = uuid
+		`, entity)
 	if err != nil {
 		return err
 	}
+
 	rows, err := res.RowsAffected()
 	if err != nil {
 		return err
@@ -84,41 +90,27 @@ type SearchResult struct {
 }
 
 func SearchReport(filter string, filterValue string, sort string, ascDesc string) (*[]SearchResult, error) {
-	var where string
+	query := `SELECT * FROM report`
+	var args []interface{}
+
 	if filter != "" {
-		where = fmt.Sprintf(" WHERE %s = ? ", filter)
-	} else {
-		where = " WHERE 1 = ? "
-		filterValue = "1"
+		query += fmt.Sprintf(" WHERE %s = ? ", filter)
+		args = append(args, filterValue)
 	}
 
-	var orderBy string
 	if sort == "time" {
-		orderBy = fmt.Sprintf(" ORDER BY time %s ", ascDesc)
+		query += fmt.Sprintf(" ORDER BY time %s ", ascDesc)
 	} else {
-		orderBy = fmt.Sprintf(" ORDER BY %s %s, time DESC ", sort, ascDesc)
+		query += fmt.Sprintf(" ORDER BY %s %s, time DESC ", sort, ascDesc)
 	}
 
-	rows, err := DB.Query(`SELECT * FROM report`+
-		where+
-		orderBy+
-		`LIMIT 2000`, filterValue)
-	if err != nil {
-		slog.Error("failed to query report: ", err)
-		return nil, fmt.Errorf("failed to query report: %v", err)
-	}
-	defer rows.Close()
+	query += ` LIMIT 2000 `
 
 	var reports []SearchResult
-
-	for rows.Next() {
-		var report SearchResult
-		err = rows.Scan(&report.ID, &report.CameraID, &report.UUID, &report.Time, &report.VideoID, &report.Latitude, &report.Longitude, &report.Severity, &report.ReportType, &report.Text)
-		if err != nil {
-			slog.Error("failed to scan report: ", err)
-			return nil, err
-		}
-		reports = append(reports, report)
+	err := DB.Select(&reports, query, args...)
+	if err != nil {
+		slog.Error("failed to query report: ", err)
+		return nil, err
 	}
 
 	return &reports, nil
